@@ -1,0 +1,23 @@
+syntax="proto3";
+
+package state;
+
+message Node {
+    int64 Mod = 1;
+    int64 Expiry = 2;
+    bool Enabled = 3;
+}
+
+message Service {
+    int64 Mod = 1;
+    map<string, Node> Nodes = 2;
+    bytes Raw = 3; 
+}
+
+message Services {
+    map<string, Service> Services = 1;
+}
+
+message Index {
+    map<string, Services> Services = 1;
+}

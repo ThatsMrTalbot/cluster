@@ -1,0 +1,3 @@
+# Cluster test utils
+
+This package provides a runner to run tests within a docker cluster. It currently works on OSX and Linux. Windows still has a few issues.
