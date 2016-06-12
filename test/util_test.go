@@ -26,7 +26,7 @@ func TestUtil(t *testing.T) {
 			mount := mountString(path, "/test")
 
 			Convey("Then the mount string should be valid", func() {
-				So(mount, ShouldEqual, "/c/Users/ThatsMrTalbot/test:/test")
+				So(mount, ShouldEqual, "//c/Users/ThatsMrTalbot/test:/test")
 			})
 		})
 	})
