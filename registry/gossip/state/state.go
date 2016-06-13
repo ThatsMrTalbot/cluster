@@ -3,7 +3,6 @@
 package state
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/protobuf/proto"
 	"github.com/pborman/uuid"
+	"github.com/pkg/errors"
 )
 
 //TODO
@@ -91,7 +91,7 @@ func (state *State) GetService(name string) ([]*registry.Service, error) {
 	if state.services != nil && len(state.services[name]) != 0 {
 		return state.services[name], nil
 	}
-	return nil, fmt.Errorf("Service %s not found", name)
+	return nil, errors.Errorf("Service %s not found", name)
 }
 
 // ListServices lists all services
@@ -127,19 +127,19 @@ func (state *State) RegisterAndReturnChange(s *registry.Service, ops ...registry
 
 	diff, change, err := state.index.Add(nil, s, options.TTL)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error adding service to index")
 	}
 
 	state.pub(diff)
 
 	services, err := state.index.ToMap()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error rebuilding map")
 	}
 
 	c, err := proto.Marshal(change)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error building change message")
 	}
 
 	state.services = services
@@ -161,19 +161,19 @@ func (state *State) DeregisterAndReturnChange(s *registry.Service) ([]byte, erro
 
 	diff, change, err := state.index.Remove(nil, s)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error removing service from index")
 	}
 
 	state.pub(diff)
 
 	services, err := state.index.ToMap()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error rebuilding map")
 	}
 
 	c, err := proto.Marshal(change)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error building change message")
 	}
 
 	state.services = services
@@ -185,7 +185,7 @@ func (state *State) DeregisterAndReturnChange(s *registry.Service) ([]byte, erro
 func (state *State) Clean() error {
 	diff, err := state.index.Clean()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error cleaning state")
 	}
 
 	state.pub(diff)
@@ -207,17 +207,17 @@ func (state *State) MergeRemote(byt []byte) error {
 
 	var index Index
 	if err := proto.Unmarshal(byt, &index); err != nil {
-		return err
+		return errors.Wrap(err, "Error unmarshaling merge message")
 	}
 
 	diff, err := state.index.Merge(nil, &index)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error merging message")
 	}
 
 	services, err := state.index.ToMap()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error rebuilding map")
 	}
 
 	state.services = services
@@ -232,5 +232,9 @@ func (state *State) LocalState() ([]byte, error) {
 	state.mu.RLock()
 	defer state.mu.RUnlock()
 
-	return proto.Marshal(state.index)
+	buf, err := proto.Marshal(state.index)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error marshaling state")
+	}
+	return buf, nil
 }

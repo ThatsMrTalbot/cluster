@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/memberlist"
 	"github.com/micro/go-micro/registry"
 	"github.com/pborman/uuid"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -48,7 +49,7 @@ func (g *gossip) MergeRemoteState(buf []byte, join bool) {
 func (g *gossip) Deregister(s *registry.Service) error {
 	change, err := g.DeregisterAndReturnChange(s)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error deregistering service")
 	}
 
 	// Broadcast change
@@ -59,7 +60,7 @@ func (g *gossip) Deregister(s *registry.Service) error {
 func (g *gossip) Register(s *registry.Service, ops ...registry.RegisterOption) error {
 	change, err := g.RegisterAndReturnChange(s, ops...)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error registering service")
 	}
 
 	// Broadcast change
@@ -88,11 +89,11 @@ func NewRegistry(opts ...registry.Option) registry.Registry {
 	}
 
 	if err := applyAddress(options, config); err != nil {
-		log.Fatalf("Error creating memberlisty: %s", err)
+		log.Fatalf("Error creating memberlist: %s", err)
 	}
 
 	if err := applyAdvertise(options, config); err != nil {
-		log.Fatalf("Error creating memberlisty: %s", err)
+		log.Fatalf("Error creating memberlist: %s", err)
 	}
 
 	g := new(gossip)

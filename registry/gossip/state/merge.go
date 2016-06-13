@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/micro/go-micro/registry"
+	"github.com/pkg/errors"
 	"gopkg.in/vmihailenco/msgpack.v2"
 )
 
@@ -27,7 +28,7 @@ func (i *Index) Add(ctx context.Context, s *registry.Service, timeout time.Durat
 
 	raw, err := msgpack.Marshal(s)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "Error marshaling service")
 	}
 
 	nodes := make(map[string]*Node)
@@ -55,7 +56,11 @@ func (i *Index) Add(ctx context.Context, s *registry.Service, timeout time.Durat
 
 	ctx = withService(ctx, s)
 	diff, err := i.Merge(ctx, merge)
-	return diff, merge, err
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "Error merging merge changes")
+	}
+
+	return diff, merge, nil
 }
 
 // Remove merges a removed service
@@ -74,7 +79,7 @@ func (i *Index) Remove(ctx context.Context, s *registry.Service) ([]*registry.Re
 
 	raw, err := msgpack.Marshal(s)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "Error marshaling service")
 	}
 
 	merge := &Index{
@@ -93,7 +98,11 @@ func (i *Index) Remove(ctx context.Context, s *registry.Service) ([]*registry.Re
 
 	ctx = withService(ctx, s)
 	diff, err := i.Merge(ctx, merge)
-	return diff, merge, err
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "Error merging merge changes")
+	}
+
+	return diff, merge, nil
 }
 
 // Merge merges one index into another
@@ -122,7 +131,7 @@ func (i *Index) Merge(ctx context.Context, merge *Index) ([]*registry.Result, er
 
 			// Merge
 			if err := s2.Merge(ctx, name, version, s1, &diff); err != nil {
-				return nil, err
+				return nil, errors.Wrapf(err, "Error merging service `%s` version `%s`", name, version)
 			}
 		}
 	}
@@ -136,11 +145,11 @@ func (i *Index) ToMap() (map[string][]*registry.Service, error) {
 	for name, services := range i.Services {
 		slice := make([]*registry.Service, 0, len(services.Services))
 
-		for _, service := range services.Services {
+		for version, service := range services.Services {
 			var s *registry.Service
 
 			if err := msgpack.Unmarshal(service.Raw, &s); err != nil {
-				return nil, err
+				return nil, errors.Wrapf(err, "Error unmarshaling service `%s` version `%s`", name, version)
 			}
 
 			if len(s.Nodes) == 0 {
@@ -197,7 +206,12 @@ func (i *Index) Clean() ([]*registry.Result, error) {
 	}
 
 	// Merge into self to trigger update
-	return i.Merge(ctx, i)
+	diff, err := i.Merge(ctx, i)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error merging merge changes")
+	}
+
+	return diff, nil
 }
 
 // Merge one service into another
@@ -205,12 +219,12 @@ func (s *Service) Merge(ctx context.Context, name string, version string, merge 
 	// Unmarshal service
 	s1, err := getService(nil, name, version, s.Raw)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Could not get destination service")
 	}
 
 	s2, err := getService(ctx, name, version, merge.Raw)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Could not get source service")
 	}
 
 	// Has the service changed
@@ -284,7 +298,7 @@ func (s *Service) Merge(ctx context.Context, name string, version string, merge 
 	// Marshal service and store
 	raw, err := msgpack.Marshal(s1)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error marshaling merged service")
 	}
 
 	// Update state
@@ -340,7 +354,7 @@ func getService(ctx context.Context, name string, version string, raw []byte) (*
 	}
 
 	if err := msgpack.Unmarshal(raw, service); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error unmarshaling service")
 	}
 
 	return service, nil
