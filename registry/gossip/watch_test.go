@@ -14,17 +14,14 @@ func TestWatch(t *testing.T) {
 		r1Address := fmt.Sprintf("%s:%d", addr, port)
 
 		Convey("When a local watcher is initiated", WithWatcher(r1, func(w registry.Watcher) {
-			Convey("Then changes should be published to the watcher", func() {
-				WithService(r1, "test", addr, port, func(s *registry.Service) {
-					expected := &registry.Result{
-						Action:  "create",
-						Service: s,
-					}
+			Convey("Then changes should be published to the watcher", WithService(r1, "test", addr, port, func(s *registry.Service) {
+				expected := &registry.Result{
+					Action:  "create",
+					Service: s,
+				}
 
-					So(w, ShouldHaveNext, expected)
-				})()
-
-			})
+				So(w, ShouldHaveNext, expected)
+			}))
 		}))
 
 		Convey("When a watcher is initiated from a joined node", WithRegistry([]string{r1Address}, func(r2 registry.Registry, _ string, _ int) {

@@ -5,6 +5,7 @@ package state
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -26,12 +27,14 @@ type State struct {
 }
 
 // NewState creates a new state
-func NewState() *State {
-	return &State{
+func NewState(tick time.Duration) *State {
+	s := &State{
 		services: make(map[string][]*registry.Service),
 		index:    &Index{},
 		subs:     make(map[string]chan *registry.Result),
 	}
+	go s.doClean(tick)
+	return s
 }
 
 // Watch creates a watcher
@@ -176,6 +179,25 @@ func (state *State) DeregisterAndReturnChange(s *registry.Service) ([]byte, erro
 	state.services = services
 
 	return c, nil
+}
+
+// Clean cleans the state
+func (state *State) Clean() error {
+	diff, err := state.index.Clean()
+	if err != nil {
+		return err
+	}
+
+	state.pub(diff)
+
+	return nil
+}
+
+func (state *State) doClean(d time.Duration) {
+	ticker := time.NewTicker(d)
+	for range ticker.C {
+		state.Clean()
+	}
 }
 
 // MergeRemote merges remote state

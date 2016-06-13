@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/facebookgo/freeport"
 	"github.com/hashicorp/memberlist"
@@ -26,6 +27,9 @@ const (
 var (
 	// DefaultKey is the default key, you should change this if using secure
 	DefaultKey = []byte("DefaultGossipKey")
+
+	// ExpiryTick is the interval to perform cleans on the state
+	ExpiryTick = time.Second * 10
 )
 
 type contextModeKey struct{}

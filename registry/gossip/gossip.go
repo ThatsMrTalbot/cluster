@@ -106,7 +106,7 @@ func NewRegistry(opts ...registry.Option) registry.Registry {
 
 	g.m = m
 	g.l = log
-	g.State = state.NewState()
+	g.State = state.NewState(ExpiryTick)
 	g.TransmitLimitedQueue = &memberlist.TransmitLimitedQueue{
 		NumNodes:       m.NumMembers,
 		RetransmitMult: 3,

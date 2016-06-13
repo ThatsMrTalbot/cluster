@@ -18,9 +18,10 @@ func TestMerge(t *testing.T) {
 				Metadata: map[string]string{"a": "b"},
 				Nodes: []*registry.Node{
 					{
-						Id:      "node1",
-						Address: "127.0.0.1",
-						Port:    123,
+						Id:       "node1",
+						Address:  "127.0.0.1",
+						Port:     123,
+						Metadata: make(map[string]string),
 					},
 				},
 			}
@@ -85,9 +86,10 @@ func TestMerge(t *testing.T) {
 				Metadata: map[string]string{"a": "b"},
 				Nodes: []*registry.Node{
 					{
-						Id:      "node1",
-						Address: "127.0.0.1",
-						Port:    123,
+						Id:       "node1",
+						Address:  "127.0.0.1",
+						Port:     123,
+						Metadata: make(map[string]string),
 					},
 				},
 			}
@@ -95,7 +97,7 @@ func TestMerge(t *testing.T) {
 			_, _, err := i.Add(nil, service, 0)
 			So(err, ShouldBeNil)
 
-			service.Metadata = nil
+			service.Metadata = make(map[string]string)
 
 			diff, _, err := i.Add(nil, service, 0)
 			So(err, ShouldBeNil)

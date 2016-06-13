@@ -213,22 +213,6 @@ func (s *Service) Merge(ctx context.Context, name string, version string, merge 
 		return err
 	}
 
-	if s.Raw == nil {
-		s1 = &registry.Service{}
-	} else {
-		if err := msgpack.Unmarshal(s.Raw, &s1); err != nil {
-			return err
-		}
-	}
-
-	if merge.Raw == nil {
-		s2 = &registry.Service{}
-	} else {
-		if err := msgpack.Unmarshal(merge.Raw, &s2); err != nil {
-			return err
-		}
-	}
-
 	// Has the service changed
 	changed := false
 	count := len(s1.Nodes)

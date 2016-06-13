@@ -3,6 +3,7 @@ package state
 import (
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/micro/go-micro/registry"
 	"github.com/pborman/uuid"
@@ -56,7 +57,7 @@ func TestState(t *testing.T) {
 
 func WithState(f func(*State)) func() {
 	return func() {
-		s := NewState()
+		s := NewState(time.Second)
 		f(s)
 	}
 }

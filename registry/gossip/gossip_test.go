@@ -107,13 +107,15 @@ func WithRegistry(addrs []string, f func(registry.Registry, string, int)) func()
 func WithService(reg registry.Registry, name string, addr string, port int, f func(*registry.Service)) func() {
 	return func() {
 		service := &registry.Service{
-			Name:    name,
-			Version: "1.0.0",
+			Name:     name,
+			Metadata: make(map[string]string),
+			Version:  "1.0.0",
 			Nodes: []*registry.Node{
 				{
-					Id:      uuid.NewUUID().String(),
-					Address: addr,
-					Port:    port,
+					Id:       uuid.NewUUID().String(),
+					Address:  addr,
+					Port:     port,
+					Metadata: make(map[string]string),
 				},
 			},
 		}
