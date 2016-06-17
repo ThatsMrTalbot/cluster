@@ -138,8 +138,8 @@ func RefreshTokenPrivateKeyHMAC(secret []byte) Option {
 	}
 }
 
-// RefreshPrivateKeyRSA sets the private key to a rsa private key
-func RefreshPrivateKeyRSA(key *rsa.PrivateKey) Option {
+// RefreshTokenPrivateKeyRSA sets the private key to a rsa private key
+func RefreshTokenPrivateKeyRSA(key *rsa.PrivateKey) Option {
 	return func(o *options) {
 		o.RefreshPrivateKey = prototoken.NewRSAPrivateKey(key)
 	}
