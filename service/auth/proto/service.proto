@@ -1,0 +1,33 @@
+syntax="proto3";
+
+package proto;
+
+enum TokenType {
+    Auth = 0;
+    Refresh = 1;
+}
+
+message User {
+    string UID = 1;
+    repeated string Permissions = 2;
+}
+
+message Token {
+    TokenType type = 1;
+    int64 expiry = 2;
+    User user = 3;
+}
+
+message AuthRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message RefreshRequest {
+    string token = 1;
+}
+
+message Response {
+    string token = 1;
+    string refresh = 2;
+}
