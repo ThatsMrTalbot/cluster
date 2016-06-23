@@ -68,7 +68,7 @@ func (c *Client) Validate(token string) (*proto.Token, error) {
 		return nil, errors.New("Refresh tokens cannot be validated")
 	}
 
-	if Expired(data) {
+	if expired(data) {
 		return nil, errors.New("Token has expired")
 	}
 

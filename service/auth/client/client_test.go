@@ -69,6 +69,11 @@ func TestClient(t *testing.T) {
 
 			Convey("Then an error should be returned", func() {
 				So(err, ShouldNotBeNil)
+
+				expired, err := Expired(refresh)
+				So(err, ShouldBeNil)
+				So(expired, ShouldBeTrue)
+
 			})
 		})
 

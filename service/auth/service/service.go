@@ -60,7 +60,7 @@ func (a *Auth) Refresh(ctx context.Context, req *proto.RefreshRequest, rsp *prot
 		return errors.New("Provided token is not a refresh token")
 	}
 
-	if tok.Expiry < time.Now().Unix() {
+	if tok.Expiry < time.Now().UTC().Unix() {
 		return errors.New("Provided token has expired")
 	}
 
@@ -75,7 +75,7 @@ func (a *Auth) Refresh(ctx context.Context, req *proto.RefreshRequest, rsp *prot
 func (a *Auth) generate(user *proto.User) (string, string, error) {
 	tokenExp := int64(0)
 	if a.opts.TokenExpiry > 0 {
-		tokenExp = time.Now().Add(a.opts.TokenExpiry).Unix()
+		tokenExp = time.Now().UTC().Add(a.opts.TokenExpiry).Unix()
 	}
 
 	token := &proto.Token{
@@ -86,7 +86,7 @@ func (a *Auth) generate(user *proto.User) (string, string, error) {
 
 	refreshExp := int64(0)
 	if a.opts.TokenExpiry > 0 {
-		refreshExp = time.Now().Add(a.opts.RefreshExpiry).Unix()
+		refreshExp = time.Now().UTC().Add(a.opts.RefreshExpiry).Unix()
 	}
 
 	refresh := &proto.Token{
